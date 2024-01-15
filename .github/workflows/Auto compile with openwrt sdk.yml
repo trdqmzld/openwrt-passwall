@@ -152,13 +152,17 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Xray_Plugin=n" >> .config
           make defconfig
 
+      - name: SSH connection to Actions
+        uses: mxschmitt/action-tmate@v3.13
+        if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+
       - name: Compile passwall
         id: compile
         run: |
           cd sdk
           echo "make package/luci-app-passwall/{clean,compile} -j$(nproc)"
-          make package/luci-app-passwall/{clean,compile} -j$(nproc)
-          mv bin/packages/x86_64/passwall/ ../
+# make package/luci-app-passwall/{clean,compile} -j$(nproc)
+# mv bin/packages/x86_64/passwall/ ../
           make clean
           rm .config .config.old
           cd ../passwall
@@ -204,10 +208,6 @@ jobs:
           file_name=$(echo ${{matrix.url_sdk}} | awk -F/ '{print $NF}')
           mkdir sdk && tar -xJf $file_name -C ./sdk --strip-components=1
           cd sdk
-
-      - name: SSH connection to Actions
-        uses: mxschmitt/action-tmate@v3.13
-        if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
 
       - name: ${{ matrix.platform }} feeds configuration packages
         run: |
